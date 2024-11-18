@@ -202,7 +202,7 @@ if (!empty($category) || !empty($tag) || (!empty($date_from) && !empty($date_to)
                 <div>
                     <button id="add_product" class="ui primary button" >Add product</button>
                     <button id="add_property" class="ui button">Add property</button>
-                    <a href="#" class="ui button">Sync online</a>
+                    <a href="#" class="ui button" id="syncButton">Sync online</a>
                 </div>
                 <div class="ui icon input">
                     <input id="search" type="text"  oninput="loadApplyFilters(event)" placeholder="Search product..." value="">
@@ -1112,14 +1112,13 @@ $(document).on('submit', '#saveProduct', function(e){
 
 //delete one product
 
+// Delete one product
 $(document).on('click', '.delete_button', function(e) {
-    e.preventDefault(); 
+    e.preventDefault();
 
-    var productId = $(this).data('id'); 
+    var productId = $(this).data('id');
     var productRow = $(this).closest('tr');
     var productIds = [];
-
-    
 
     var currentPage = $('#currentPages').val();
     
@@ -1129,54 +1128,48 @@ $(document).on('click', '.delete_button', function(e) {
     
     }
 
-    console.log('current page:'+currentPage);
+    console.log('ccc' + currentPage);
     
-$('#tableID tr').each(function() {
-    var productId = $(this).find('.delete_button').data('id'); 
-    if (productId) { 
-        productIds.push(productId); 
-    }
-});
-console.log(productIds);
-console.log('PID'+productIds.length);
 
+    // Lấy tất cả ID sản phẩm hiện có trên trang
+    $('#tableID tr').each(function() {
+        var id = $(this).find('.delete_button').data('id');
+        if (id) { productIds.push(id); }
+    });
+
+    // Lấy giá trị của các tham số bộ lọc
+    var filters = {
+        category: $('#category').val() || '',
+        tag: $('#tag').val() || '',
+        search: $('#search').val() || '',
+        sort_by: $('#sort_by').val() || '',
+        order: $('#order').val() || '',
+        date_from: $('#date_from').val() || '',
+        date_to: $('#date_to').val() || '',
+        price_from: $('#price_from').val() || '',
+        price_to: $('#price_to').val() || '',
+        gallery: $('#gallery').val() || ''
+    };
+
+    // Xác nhận xóa sản phẩm
     if (confirm('Are you sure you want to delete this product?')) {
-       
         $.ajax({
-            url: 'delete_product.php', 
+            url: 'delete_product.php',
             method: 'POST',
             data: { id: productId },
-
-           
             success: function(response) {
-                if (response == 'success') {
+                if (response === 'success') {
                     productRow.fadeOut(function() {
-                        $(this).remove(); 
+                        $(this).remove();
 
-                          if (productIds.length < 2) {
-                        var previousPage = currentPage - 1;
-                        if (previousPage < 1) {
-                            previousPage = 1;
+                        // Kiểm tra số lượng sản phẩm còn lại để cập nhật trang
+                        if (productIds.length <= 1) {
+                            const previousPage = Math.max(currentPage - 1, 1);
+                            updateTableAndPagination(previousPage, filters);
+                        } else {
+                            updateTableAndPagination(currentPage, filters);
                         }
-
-                        $('#tableID').load(`index.php?page=${previousPage} #tableID`);
-                        $('#paginationBox').load(`index.php?page=${previousPage} #paginationBox`);
-
-                    } else if (productIds.length >= 2 && productIds.length < 6) {
-
-                        $('#tableID').load(`index.php?page=${currentPage}?category=1922 #tableID`);
-                        
-                        $('#paginationBox').load(`index.php?page=${currentPage} #paginationBox`);
-
-                    }else if(productIds.length < 2){
-                        currentPage = currentPage - 1 ;
-
-                        $('#tableID').load(`index.php?page=${currentPage} #tableID`);
-                        
-                        $('#paginationBox').load(`index.php?page=${currentPage} #paginationBox`);                        
-                    }
-
-                    });                
+                    });
                 } else {
                     alert('Error deleting the product');
                 }
@@ -1186,8 +1179,51 @@ console.log('PID'+productIds.length);
             }
         });
     }
+
+    // Hàm trợ giúp để tải lại bảng và phân trang với bộ lọc
+    function updateTableAndPagination(page, filters) {
+        const queryParams = $.param({
+            page: page,
+            category: filters.category,
+            tag: filters.tag,
+            search: filters.search,
+            sort_by: filters.sort_by,
+            order: filters.order,
+            date_from: filters.date_from,
+            date_to: filters.date_to,
+            price_from: filters.price_from,
+            price_to: filters.price_to,
+            gallery: filters.gallery
+        });
+
+        const query = `index.php?${queryParams}`;
+        $('#tableID').load(`${query} #tableID`);
+        $('#paginationBox').load(`${query} #paginationBox`);
+    }
 });
 
+
+
+$(document).ready(function(){
+    $("#syncButton").click(function(e){
+        e.preventDefault(); // Ngừng hành động mặc định của nút
+        $.ajax({
+            url: 'sync_product.php', // Đường dẫn đến file PHP xử lý
+            type: 'POST',
+            data: { 
+                url: 'https://aliexpress.ru/item/1005007662056562.html' // URL sản phẩm
+            },
+            success: function(response) {
+                alert('Sync thành công!');
+                console.log(response);
+            },
+            error: function(xhr, status, error) {
+                console.error('Error: ' + error);
+                alert('Đã xảy ra lỗi khi đồng bộ.');
+            }
+        });
+    });
+});
 
 </script>
 </body>
