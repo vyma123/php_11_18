@@ -30,7 +30,12 @@ $(document).on('click', '.edit_button', function(e) {
 				$('#okMessage_product').hide();
 				$('#galleryPreviewContainer').show();
 				
-                $('#uploadedImage').attr('src', './uploads/' + res.data.featured_image); 
+                var imageUrl = res.data.featured_image;
+                if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) {
+                    $('#uploadedImage').attr('src', imageUrl);
+                } else {
+                    $('#uploadedImage').attr('src', './uploads/' + imageUrl);
+                }
 			
                 $('#galleryPreviewContainer').empty();
 
@@ -195,8 +200,6 @@ $(document).ready(function() {
                         $('#inputpage').html(data.inputpage);
 
                         console.log(inputpage);
-                        
-
                     },
                     error: function() {
                         alert("Có lỗi xảy ra trong quá trình tải dữ liệu.");
@@ -237,7 +240,7 @@ $('#tableID').load(location.href + " #tableID", function() {
     $('#tableID').on('click', '.delete_buttons', function(event) {
         event.preventDefault();
         
-        if (confirm('Xác nhận xóa tất cả!')) {
+        if (confirm('Delete all products!')) {
             $.ajax({
                 url: 'delete.php', 
                 type: 'POST',
@@ -392,6 +395,14 @@ $(document).on('submit', '#saveProperty', function(e){
                 $('#saveProperty')[0].reset();
 				$('#load_property').load(location.href + " #load_property");
 
+                $('.category_update').load(location.href + " .category_update", function() {
+                    $('#category').dropdown();
+                });
+
+                $('.tag_update').load(location.href + " .tag_update", function() {
+                    $('#tag').dropdown();
+                });
+
                 setTimeout(function() {
                     $('#okMessage').fadeOut(400, function() {
                         $(this).addClass('d-none');
@@ -537,8 +548,6 @@ $(document).on('submit', '#saveProduct', function(e){
 						$(this).addClass('d-none');
 					});
 				}, 2500);
-			
-				
 				
 				res.errors.forEach(function(error) {
 
@@ -583,8 +592,6 @@ $(document).on('submit', '#saveProduct', function(e){
 
                 if (error.field === 'gallery') {
 				}
-                
-              
 			});
 			
 			}
@@ -631,11 +638,16 @@ $(document).on('submit', '#saveProduct', function(e){
                 var gallery = res.gallery;
 
                 console.log(gallery);
-                
-              
-
 
     $('#tableID').find('.edit_button').each(function() {
+
+        var currentPage = $('#currentPages').val();
+    
+        if(currentPage === undefined){
+
+        var currentPage = $('#currentPage').val();
+    }
+
         var button = $(this);
         var productIDInRow = button.val(); 
         
@@ -650,9 +662,6 @@ $(document).on('submit', '#saveProduct', function(e){
                 button.closest('tr').find('.featured_image img').attr('src', './uploads/' + featuredImage);
             }
 
-
-            
-           
             if(gallery && Array.isArray(gallery.name) && gallery.name != ''){
                 
                 
@@ -674,6 +683,63 @@ $(document).on('submit', '#saveProduct', function(e){
                             
                         galleryContainer.append('<img height="30" src="./uploads/' + image + '" alt="Gallery Image">');  
                         console.log('leng=0');
+
+                         var productIds = [];
+
+                        $('#tableID tr').each(function() {
+                            var id = $(this).find('.edit_button').data('id');
+                            if (id) { productIds.push(id); }
+                        });
+
+                    //     var currentPage = $('#currentPages').val();
+    
+                    //     if(currentPage === undefined){
+
+                    //     var currentPage = $('#currentPage').val();
+                    // }
+                    // console.log(currentPage);
+
+                    //     console.log(productIds.length);
+
+
+                        var filters = {
+                            category: $('#category').val() || '',
+                            tag: $('#tag').val() || '',
+                            search: $('#search').val() || '',
+                            sort_by: $('#sort_by').val() || '',
+                            order: $('#order').val() || '',
+                            date_from: $('#date_from').val() || '',
+                            date_to: $('#date_to').val() || '',
+                            price_from: $('#price_from').val() || '',
+                            price_to: $('#price_to').val() || '',
+                            gallery: $('#gallery').val() || ''
+                        };
+
+
+                        
+                            updateTableAndPagination(currentPage, filters);
+                        
+
+                        function updateTableAndPagination(page, filters) {
+                            const queryParams = $.param({
+                                page: page,
+                                category: filters.category,
+                                tag: filters.tag,
+                                search: filters.search,
+                                sort_by: filters.sort_by,
+                                order: filters.order,
+                                date_from: filters.date_from,
+                                date_to: filters.date_to,
+                                price_from: filters.price_from,
+                                price_to: filters.price_to,
+                                gallery: filters.gallery
+                            });
+                    
+                            const query = `index.php?${queryParams}`;
+                            $('#tableID').load(`${query} #tableID`);
+                            $('#paginationBox').load(`${query} #paginationBox`);
+                        }
+
                     }
                 });
             } else {
@@ -744,6 +810,9 @@ $(document).on('click', '.delete_button', function(e) {
         if (id) { productIds.push(id); }
     });
 
+    console.log(productIds);
+    
+
     var filters = {
         category: $('#category').val() || '',
         tag: $('#tag').val() || '',
@@ -806,8 +875,6 @@ $(document).on('click', '.delete_button', function(e) {
 });
 
 
-
-
 $(document).ready(function() {
     $('#syncButton').click(function(e) {
         e.preventDefault();
@@ -821,12 +888,20 @@ $(document).ready(function() {
             data: {
                 url: 'https://aliexpress.ru/item/1005007662056562.html'
             },
-
             
             success: function(response) {
                 console.log(response);
                 $('#tableID').load(location.href + " #tableID"); 
                 $('#paginationBox').load(location.href + " #paginationBox"); 
+
+
+                $('.category_update').load(location.href + " .category_update", function() {
+                    $('#category').dropdown();
+                });
+
+                $('.tag_update').load(location.href + " .tag_update", function() {
+                    $('#tag').dropdown();
+                });
 
                 
             },
@@ -834,7 +909,6 @@ $(document).ready(function() {
                 alert('Có lỗi xảy ra khi đồng bộ sản phẩm.');
             },
             complete: function() {
-                // Hide loader by removing the 'active' class
                 $('.ui.loader').removeClass('active');
             }
         });
@@ -842,4 +916,27 @@ $(document).ready(function() {
     
 
 });
-
+function isNumber(event) {
+    var charC = (event.which) ? event.which : event.keyCode;
+    
+    if (charC <= 31) {
+        return true;
+    }
+    
+    if ((charC >= 48 && charC <= 57) || charC === 46) {
+        var inP = event.target;
+        var currValue = inP.value;
+        
+        if (currValue.length === 0 && charC === 48) {
+            return false;
+        }
+        
+        if (charC === 46 && currValue.includes('.')) {
+            return false;
+        }
+        
+        return true;
+    }
+    
+    return false;
+}

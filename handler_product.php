@@ -3,15 +3,8 @@ require_once './includes/db.inc.php';
 require_once './includes/functions.php';
 
 
-$categoryQuery = "SELECT id, name_ FROM property WHERE type_ = 'category'";
-$categoryStmt = $pdo->prepare($categoryQuery);
-$categoryStmt->execute();
-$categories = $categoryStmt->fetchAll(PDO::FETCH_ASSOC);
-
-$tagQuery = "SELECT id, name_ FROM property WHERE type_ = 'tag'";
-$tagStmt = $pdo->prepare($tagQuery);
-$tagStmt->execute();
-$tags = $tagStmt->fetchAll(PDO::FETCH_ASSOC);
+$categories = getPropertiesByType($pdo, 'category');
+$tags = getPropertiesByType($pdo, 'tag');
 
 
 if (isset($_POST['action_type'])) {
@@ -23,9 +16,9 @@ if (isset($_POST['action_type'])) {
         $product_name = test_input($_POST['product_name']);
         $sku = test_input($_POST['sku']);
         $price = test_input($_POST['price']);
+        $gallery_images = $_FILES['gallery'];
         $selected_categories = isset($_POST['categories']) ? json_decode($_POST['categories'], true) : [];
         $selected_tags = isset($_POST['tags']) ? json_decode($_POST['tags'], true) : [];
-
 
         if (!isValidInput($product_name) && !empty($product_name)) {
             $errors[] = [
@@ -48,18 +41,20 @@ if (isset($_POST['action_type'])) {
             ];
         }
 
-        $query = "SELECT COUNT(*) FROM products WHERE sku = :sku AND id != :product_id";
-        $stmt = $pdo->prepare($query);
-        $stmt->bindParam(':sku', $sku);
-        $stmt->bindParam(':product_id', $product_id); 
-        $stmt->execute();
-        $count = $stmt->fetchColumn();
-
-        if ($count > 0) {
-            $errors[] = [
-                'field' => 'exist',
-                'message' => 'The SKU already exists for another product.'
-            ];
+        if(!empty($sku)){
+            $query = "SELECT COUNT(*) FROM products WHERE sku = :sku AND id != :product_id";
+            $stmt = $pdo->prepare($query);
+            $stmt->bindParam(':sku', $sku);
+            $stmt->bindParam(':product_id', $product_id); 
+            $stmt->execute();
+            $count = $stmt->fetchColumn();
+            
+            if ($count > 0) {
+                $errors[] = [
+                    'field' => 'exist',
+                    'message' => 'The SKU already exists for another product.'
+                ];
+            }
         }
 
         if (empty($product_name) || empty($price)) {
@@ -68,6 +63,8 @@ if (isset($_POST['action_type'])) {
                 'message' => ' At least one field is required.'
             ];
         }
+
+       
 
         if (!empty($errors)) {
             $res = [
@@ -155,11 +152,8 @@ if (isset($_POST['action_type'])) {
                 }
             }
         }
-        
-            
         }
       
-
         if (!empty($selected_categories)) {
             $query = "DELETE pp FROM product_property pp
                 JOIN property p ON pp.property_id = p.id
@@ -190,12 +184,6 @@ if (isset($_POST['action_type'])) {
             $stmt->execute();
             $categoriesse = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-         
-
-
-
-
-
         if (!empty($selected_tags) && is_array($selected_tags[0])) {
             $selected_tags = $selected_tags[0];
         }
@@ -208,7 +196,6 @@ if (isset($_POST['action_type'])) {
             $stmt->bindParam(':product_id', $product_id);
             $stmt->execute();
         }
-
 
         $tagStmt = $pdo->prepare("INSERT INTO product_property (product_id, property_id) VALUES (:product_id, :property_id)");
         foreach ($selected_tags as $tag) {
@@ -228,9 +215,6 @@ if (isset($_POST['action_type'])) {
         $tagsse = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         
-        
-
-        
          $res = ['status' => 200, 'action' => 'edit', 
                   'message' => 'Product updated successfully',
                   'product_id' => $product_id,
@@ -247,8 +231,6 @@ if (isset($_POST['action_type'])) {
          return;
 
 
-
-     
     } elseif ($action_type === 'add_product') {
        
         $selected_categories = isset($_POST['categories']) ? json_decode($_POST['categories'], true) : [];
@@ -283,17 +265,19 @@ if (isset($_POST['action_type'])) {
             ];
         }
 
-        $query = "SELECT COUNT(*) FROM products WHERE sku = :sku";
-        $stmt = $pdo->prepare($query);
-        $stmt->bindParam(':sku', $sku);
-        $stmt->execute();
-        $count = $stmt->fetchColumn();
-
-        if($count > 0){
-            $errors[] = [
-                'field' => 'exist',
-                'message' => 'exist'
-            ];
+        if(!empty($sku)){
+            $query = "SELECT COUNT(*) FROM products WHERE sku = :sku";
+            $stmt = $pdo->prepare($query);
+            $stmt->bindParam(':sku', $sku);
+            $stmt->execute();
+            $count = $stmt->fetchColumn();
+            
+            if($count > 0){
+                $errors[] = [
+                    'field' => 'exist',
+                    'message' => 'exist'
+                ];
+            }
         }
 
         if (empty($product_name) || empty($price) || $featured_image['error'] === UPLOAD_ERR_NO_FILE) {
@@ -303,20 +287,7 @@ if (isset($_POST['action_type'])) {
             ];
         }
 
-        foreach ($gallery_images['error'] as $index => $error) {
-            if ($error === UPLOAD_ERR_NO_FILE) {
-                $errors[] = [
-                    'field' => 'empty',
-                    'message' => 'At least one gallery image is required'
-                ];
-            } elseif ($error !== UPLOAD_ERR_OK) {
-                $errors[] = [
-                    'field' => 'gallery',
-                    'message' => 'Error uploading gallery image at index ' . $index
-                ];
-            }
-        }
-
+       
 
         if (!empty($errors)) {
             $res = [
@@ -332,8 +303,6 @@ if (isset($_POST['action_type'])) {
             move_uploaded_file($featured_image['tmp_name'], 'uploads/' . $file_name);
            
                 if(empty($sku)){
-                  
-            
                     $sku = generateSKU();
                     $product_id = insert_product($pdo, $product_name, $sku, $price, $file_name);
                 }else{
@@ -488,17 +457,3 @@ if (!isset($_POST['action_type']) && !isset($_GET['product_id'])) {
     return;
 }
 ?>
-
-
-
-
-
-
-
-
-
-
-
-
-
-

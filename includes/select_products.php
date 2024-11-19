@@ -1,4 +1,6 @@
 <?php
+require_once 'includes/db.inc.php';
+require_once './includes/functions.php';
 
 $results = select_all_products($pdo);
 
@@ -50,7 +52,7 @@ WHERE products.product_name LIKE :search_term
 
 if (!empty($category) && $category[0] != 0) {
     if (is_string($category)) {
-        $category = explode(',', $category);  // Convert string to array
+        $category = explode(',', $category);  
     }
     $categoryPlaceholders = implode(',', array_map(function ($index) {
         return ':category' . $index;
@@ -60,7 +62,7 @@ if (!empty($category) && $category[0] != 0) {
 
 if (!empty($tag) && $tag[0] != 0) {
     if (is_string($tag)) {
-        $tag = explode(',', $tag);  // Convert string to array
+        $tag = explode(',', $tag); 
     }
     $tagPlaceholders = implode(',', array_map(function ($index) {
         return ':tag' . $index;
@@ -131,9 +133,6 @@ $stmt->bindParam(':start_from', $start_from, PDO::PARAM_INT);
 $stmt->bindParam(':per_page', $per_page_record, PDO::PARAM_INT);
 $stmt->execute();
 $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-
-
 
 if (!empty($category) || !empty($tag) || (!empty($date_from) && !empty($date_to)) || (!empty($price_from) && !empty($price_to))) {
     $total_records = getRecordCount($pdo, $searchTermLike, $category, $tag, $date_from, $date_to, $price_from, $price_to);

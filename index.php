@@ -1,8 +1,8 @@
 <?php
-require_once 'includes/db.inc.php';
+require_once './includes/db.inc.php';
 require_once './includes/functions.php';
+include './includes/select_products.php';
 
-include 'select_products.php';
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -21,41 +21,6 @@ include 'select_products.php';
 
     <title>PHP1</title>
 
-    <style>
-        .field .required{
-    color: #52515196 ;
-    
-}
-
-.form_add_products{
-    font-size: 10px;
-}
-
-#categories_select{
-    height: 47px;
-}
-
-#tags_select{
-    height: 55px;
-}
-.delete_buttons{
-    color: #000;
-}
-
-.delete_button{
-    cursor: pointer;
-    color: #000;
-}
-
-.edit_button i{
-    color: #000;
-}
-.tag{
-    white-space: nowrap;
-    overflow-x: auto;
-    max-width: 200px;
-}
-    </style>
 </head>
 
 <body>
@@ -91,7 +56,7 @@ include 'select_products.php';
                     <option value="DESC">DESC</option>
                 </select>
 
-                <div class="category_boxx">
+                <div class="category_boxx category_update">
 
                 <select name="category[]" id="category" class="ui fluid search dropdown select_category" multiple="">
                 <option value="">Category</option>
@@ -108,7 +73,7 @@ include 'select_products.php';
                 ?>
         </select>
         </div>
-        <div class="category_boxx">
+        <div class="category_boxx tag_update">
         <select name="category[]" id="tag" class="ui fluid search dropdown select_tag" name="tag[]" multiple="">
                 <option value="">Select Tag</option>
                 <?php
@@ -185,11 +150,9 @@ include 'select_products.php';
                 <td class="featured_image">
                     <?php
                     if (filter_var($imageSrc, FILTER_VALIDATE_URL)) {
-                        // Display as an external URL
-                        echo '<img height="30" src="' . $imageSrc . '">';
+                        echo '<img height="30" src="' . htmlspecialchars($imageSrc) . '">';
                     } else {
-                        // Display as a local file in the uploads folder
-                        echo '<img height="30" src="./uploads/' . $imageSrc . '">';
+                        echo '<img height="30" src="./uploads/' . htmlspecialchars($imageSrc) . '">';
                     }
                     ?>
                 </td>
@@ -197,7 +160,7 @@ include 'select_products.php';
             $galleryImages = $row['gallery_images'];
            if (!empty($galleryImages)) {
            $galleryImagesArray = explode(', ', $galleryImages);
-           echo "<td class='gallery'>
+           echo "<td  class='gallery'>
                 <div class='gallery-container'>";
            foreach ($galleryImagesArray as $image) {
             echo "<img  height='30' src='./uploads/" . htmlspecialchars($image) . "'>";
@@ -215,7 +178,7 @@ include 'select_products.php';
              ?>
             <td>
             <input  type="hidden" name="id" id="id">
-                <button type="submit"   value="<?= $row['id']?>" class="edit_button" >
+                <button type="submit" data-id="<?= $row['id']?>"  value="<?= $row['id']?>" class="edit_button" >
                 <i class="edit icon"></i>
                 </button>
             

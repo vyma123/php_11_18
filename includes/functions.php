@@ -9,6 +9,16 @@ function select_all_products(object $pdo)  {
     return $results;
 }
 
+function getPropertiesByType($pdo, $type) {
+    $query = "SELECT id, name_ FROM property WHERE type_ = :type";
+    $stmt = $pdo->prepare($query);
+    $stmt->execute(['type' => $type]);
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+}
+
+
+
+
 function isValidInput($input){
     return preg_match('/^[\p{L}0-9 .,–\-_]+$/u', $input);
 }
@@ -55,7 +65,6 @@ function getRecordCount($pdo, $searchTermLike, $category = null, $tag = null, $d
     $conditions = ["products.product_name LIKE :search_term"];
     $params = [':search_term' => $searchTermLike];
     
-    // Handle category filtering if it's an array
     if ($category) {
         $categoryPlaceholders = implode(',', array_map(function ($index) {
             return ':category' . $index;
@@ -68,7 +77,6 @@ function getRecordCount($pdo, $searchTermLike, $category = null, $tag = null, $d
         }
     }
 
-    // Handle tag filtering if it's an array
     if ($tag) {
         $tagPlaceholders = implode(',', array_map(function ($index) {
             return ':tag' . $index;
@@ -81,39 +89,33 @@ function getRecordCount($pdo, $searchTermLike, $category = null, $tag = null, $d
         }
     }
 
-    // Date range filter
     if ($date_from && $date_to) {
         $conditions[] = "products.date BETWEEN :date_from AND :date_to";
         $params[':date_from'] = $date_from;
         $params[':date_to'] = $date_to;
     }
 
-    // Price range filter
     if ($price_from && $price_to) {
         $conditions[] = "products.price BETWEEN :price_from AND :price_to";
         $params[':price_from'] = $price_from;
         $params[':price_to'] = $price_to;
     }
 
-    // Combine all conditions
     if (count($conditions) > 0) {
         $query .= " WHERE " . implode(" AND ", $conditions);
     }
 
-    // Prepare and execute the query
     $stmt = $pdo->prepare($query);
     foreach ($params as $key => $value) {
         $stmt->bindValue($key, $value);
     }
     $stmt->execute();
 
-    // Return the total record count
     return $stmt->fetchColumn();
 }
 
 
 function isValidInputSKU($input) {
-    // Match empty string or strings with letters, numbers, and common punctuation
     return preg_match('/^[\p{L}0-9 .,–\-\s]*$/u', $input);
 }
 
@@ -146,7 +148,6 @@ function update_product(object $pdo, int $product_id, string $product_name, stri
         'featured_image' => $featured_image, 
     ];
     
-    // Update query
     $query = "UPDATE products 
               SET product_name = :product_name, 
                   sku = :sku, 
@@ -154,7 +155,6 @@ function update_product(object $pdo, int $product_id, string $product_name, stri
                   featured_image = :featured_image 
               WHERE id = :product_id";
     
-    // Prepare and execute the query
     $stmt = $pdo->prepare($query);
     $stmt->bindParam(":product_name", $product_name);
     $stmt->bindParam(":sku", $sku);
@@ -163,7 +163,7 @@ function update_product(object $pdo, int $product_id, string $product_name, stri
     $stmt->bindParam(":product_id", $product_id);
     $stmt->execute($data);
 
-    return $stmt->rowCount(); // Returns the number of rows affected (should be 1 if updated successfully)
+    return $stmt->rowCount(); 
 }
 
 
@@ -175,7 +175,6 @@ function update_product_no_image(object $pdo, int $product_id, string $product_n
         'price' => $price, 
     ];
     
-    // Update query
     $query = "UPDATE products 
               SET product_name = :product_name, 
                   sku = :sku, 

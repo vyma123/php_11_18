@@ -3,7 +3,7 @@
 <div class="ui modal product_box">
   <div id="errMessage_add" class="ui negative message d-none">
     <div class="header">
-    Product Name, SKU, Price,Featured Image and Gallery are required fields.  </div>
+    Product Name, SKU, Price and Featured Image are required fields.  </div>
     </div>
     <div id="err_valid_Message_product" class="ui negative message d-none">
   <div class="header">
@@ -56,7 +56,7 @@
       </div>
     </div>
     <div class="field featured_image_box">
-      <label>Gallery<span class="required">(Required)</label>
+      <label>Gallery<span class="required"></label>
       <div class="box_gallery">
         <div class="img_box">
         <div id="galleryPreviewContainer">

@@ -7,7 +7,6 @@ if (isset($_POST['save_property'])) {
     $category = test_input($_POST['category']);
     $tag = test_input($_POST['tag']);
 
-
     if(empty($category) && empty($tag)){
         $res = [
             'status' => 422,
@@ -16,8 +15,6 @@ if (isset($_POST['save_property'])) {
         echo json_encode($res);
         return;
      }
-
-
 $errors = [];
 
 if(!isValidInput($category) && !empty($category)){
@@ -93,8 +90,6 @@ if(!empty($errors)){
         $duplicateNames = implode(', ', $duplicates);
         $message .= " exists: $duplicateNames.";
     }
-
-
 
     $res = [
         'status' => 200,

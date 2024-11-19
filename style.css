@@ -240,3 +240,39 @@ margin-bottom: 20px;
 }
 
 
+/* dd */
+
+
+.field .required{
+    color: #52515196 ;
+    
+}
+
+.form_add_products{
+    font-size: 10px;
+}
+
+#categories_select{
+    height: 47px;
+}
+
+#tags_select{
+    height: 55px;
+}
+.delete_buttons{
+    color: #000;
+}
+
+.delete_button{
+    cursor: pointer;
+    color: #000;
+}
+
+.edit_button i{
+    color: #000;
+}
+.tag{
+    white-space: nowrap;
+    overflow-x: auto;
+    max-width: 200px;
+}
