@@ -1,0 +1,9 @@
+{
+    "require": {
+        "php-webdriver/webdriver": "^1.15",
+        "guzzlehttp/guzzle": "^7.9",
+        "fabpot/goutte": "^4.0",
+        "google/cloud-translate": "^1.20",
+        "stichoza/google-translate-php": "^5.2"
+    }
+}

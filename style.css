@@ -98,7 +98,7 @@
 .edit_button i {
     margin: 0 !important;
     height: 0 !important;
-    color: #4847479d;
+    color: #000;
 }
 
 
@@ -213,6 +213,8 @@ margin-bottom: 20px;
   left: 5rem;
   cursor: pointer;
 }
+
+
 
 .gallery_name{
     width: 200px;

@@ -9,11 +9,9 @@ function select_all_products(object $pdo)  {
     return $results;
 }
 
-
 function isValidInput($input){
     return preg_match('/^[\p{L}0-9 .,–\-_]+$/u', $input);
 }
-
 
 function check_duplicate(object $pdo, string $type_, string $name_) {
     try {
@@ -123,7 +121,6 @@ function isValidInputSKU($input) {
 function isValidNumberWithDotInput($input) {
     return preg_match('/^[0-9.]+$/', $input);
 }
-
 
 function generateSKU() {
     function generateRandomLetter() {

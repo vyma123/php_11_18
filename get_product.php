@@ -177,14 +177,24 @@ foreach ($results as $row) {
     $product_id = $row['id'];
     $galleryImages = $row['gallery_images'];
     $galleryImagesArray = !empty($galleryImages) ? explode(', ', $galleryImages) : [];
+    $imageSrc = $row['featured_image'];
 
     $content .= '<tbody>';
     $content .= '<tr  data-id="' . $row['id'] . '">';
     $content .= '<td>' . htmlspecialchars($row['date']) . '</td>';
     $content .= '<td class="product_name">' . htmlspecialchars($row['product_name']) . '</td>';
     $content .= '<td class="sku">' . htmlspecialchars($row['sku']) . '</td>';
-    $content .= '<td class="price">' . htmlspecialchars($row['price']) . '</td>';
-    $content .= '<td class="featured_image"><img height="30" src="./uploads/' . htmlspecialchars($row['featured_image']) . '"></td>';
+    $content .= '<td class="price">$' . htmlspecialchars($row['price']) . '</td>';
+    $content .= '<td class="featured_image">';
+
+    if (filter_var($row['featured_image'], FILTER_VALIDATE_URL)) {
+        $content .= '<img height="30" src="' . $row['featured_image'] . '">';
+    } else {
+        $content .= '<img height="30" src="./uploads/' . $row['featured_image'] . '">';
+    }
+    
+    $content .= '</td>';
+    
 
     if (!empty($galleryImagesArray)) {
         $content .= '<td class="gallery"><div class="gallery-container">';
